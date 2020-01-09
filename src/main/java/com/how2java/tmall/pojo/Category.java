@@ -17,8 +17,15 @@ public class Category {
     @Column(name = "id")
     private int id;
     private String name;
+    /**
+     * 首页导航栏分类列表
+     * 一个分类下的多个产品
+     */
     @Transient
     private List<Product> products;
+    /**
+     * 产品列表
+     */
     @Transient
     private List<List<Product>> productsByRow;
 }

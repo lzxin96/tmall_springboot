@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.how2java.tmall.pojo.Product;
 import com.how2java.tmall.util.ImageUtil;
 import com.how2java.tmall.util.Page4Navigator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,5 +112,32 @@ public class CategoryService {
      */
     public void update(Category category) {
         categoryDAO.save(category);
+    }
+
+    /**
+     * 删除Product对象上的分类
+     * 防止无穷循环遍历
+     * @param categoryList
+     */
+    public void removeCategoryFromProduct(List<Category> categoryList){
+        for (Category category : categoryList){
+            removeCategoryFromProduct(category);
+        }
+    }
+    public void removeCategoryFromProduct(Category category){
+        List<Product> products = category.getProducts();
+        if (null != products){
+            for (Product product : products){
+                product.setCategory(null);
+            }
+        }
+        List<List<Product>> productsByRow = category.getProductsByRow();
+        if (null != productsByRow){
+            for (List<Product> ps : productsByRow){
+                for (Product p : ps){
+                    p.setCategory(null);
+                }
+            }
+        }
     }
 }

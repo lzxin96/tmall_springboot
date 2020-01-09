@@ -63,7 +63,6 @@ public class ProductImageService {
             product.setFirstProductImage(new ProductImage());
         }
     }
-
     public void setFirstProdutImages(List<Product> products) {
         for (Product product : products) {
             setFirstProdutImage(product);
