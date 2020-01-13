@@ -34,4 +34,40 @@ public class UserService {
         return new Page4Navigator<>(pageFromJPA, navigatePages);
     }
 
+    /**
+     * 根据名字查找用户
+     * @param name
+     * @return
+     */
+    public User getByName(String name){
+        return userDAO.findByName(name);
+    }
+
+    /**
+     * 判断用户名是否存在
+     * @param name
+     * @return
+     */
+    public boolean isExist(String name){
+        User user = getByName(name);
+        return null != user;
+    }
+
+    /**
+     * 添加用户
+     * @param user
+     */
+    public void add(User user){
+        userDAO.save(user);
+    }
+
+    /**
+     * 获取用户名和账号
+     * @param name
+     * @param password
+     * @return
+     */
+    public User get(String name, String password) {
+        return userDAO.getByNameAndPassword(name,password);
+    }
 }

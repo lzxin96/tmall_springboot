@@ -1,12 +1,19 @@
 package com.how2java.tmall.web;
 
 import com.how2java.tmall.pojo.Category;
+import com.how2java.tmall.pojo.User;
 import com.how2java.tmall.service.CategoryService;
 import com.how2java.tmall.service.ProductService;
+import com.how2java.tmall.service.UserService;
+import com.how2java.tmall.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.HtmlUtils;
 
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 /**
@@ -19,6 +26,8 @@ public class ForeRestController {
     private CategoryService categoryService;
     @Autowired
     private ProductService productService;
+    @Autowired
+    private UserService userService;
 
     /**
      * home()方法映射首页访问路径 "forehome"
@@ -37,5 +46,43 @@ public class ForeRestController {
         categoryService.removeCategoryFromProduct(CategoryList);
         return CategoryList;
     }
+
+    /**
+     * 注册
+     * HtmlUtils.htmlEscape(name);把账号里的特殊符号进行转义
+     * @param user
+     * @return
+     */
+    @PostMapping("/foreregister")
+    public Object register(@RequestBody User user){
+        String name = HtmlUtils.htmlEscape(user.getName());
+        user.setName(name);
+        boolean exist = userService.isExist(name);
+        if (exist){
+            // ture
+            return Result.fail("用户名已被使用，不能使用。");
+        }
+        userService.add(user);
+        return Result.success();
+    }
+
+    /**
+     * 登录
+     * @param userParam
+     * @param session
+     * @return
+     */
+    @PostMapping("/forelogin")
+    public Object login(@RequestBody User userParam, HttpSession session) {
+        String name = HtmlUtils.htmlEscape(userParam.getName());
+        User user = userService.get(name, userParam.getPassword());
+        if (null == user) {
+            return Result.fail("账号密码错误");
+        } else {
+            session.setAttribute("user", user);
+            return Result.success();
+        }
+    }
+
 
 }
