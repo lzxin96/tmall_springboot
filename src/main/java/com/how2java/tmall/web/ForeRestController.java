@@ -1,24 +1,21 @@
 package com.how2java.tmall.web;
 
-import com.how2java.tmall.pojo.Category;
-import com.how2java.tmall.pojo.User;
-import com.how2java.tmall.service.CategoryService;
-import com.how2java.tmall.service.ProductService;
-import com.how2java.tmall.service.UserService;
+import com.how2java.tmall.pojo.*;
+import com.how2java.tmall.service.*;
 import com.how2java.tmall.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.HtmlUtils;
 
 import javax.servlet.http.HttpSession;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 前台功能映射
- * @Author
+ *
+ * @Author xin
  */
 @RestController
 public class ForeRestController {
@@ -28,6 +25,12 @@ public class ForeRestController {
     private ProductService productService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private ProductImageService productImageService;
+    @Autowired
+    private PropertyValueService propertyValueService;
+    @Autowired
+    private ReviewService reviewService;
 
     /**
      * home()方法映射首页访问路径 "forehome"
@@ -50,15 +53,16 @@ public class ForeRestController {
     /**
      * 注册
      * HtmlUtils.htmlEscape(name);把账号里的特殊符号进行转义
+     *
      * @param user
      * @return
      */
     @PostMapping("/foreregister")
-    public Object register(@RequestBody User user){
+    public Object register(@RequestBody User user) {
         String name = HtmlUtils.htmlEscape(user.getName());
         user.setName(name);
         boolean exist = userService.isExist(name);
-        if (exist){
+        if (exist) {
             // ture
             return Result.fail("用户名已被使用，不能使用。");
         }
@@ -68,6 +72,7 @@ public class ForeRestController {
 
     /**
      * 登录
+     *
      * @param userParam
      * @param session
      * @return
@@ -84,5 +89,50 @@ public class ForeRestController {
         }
     }
 
+    /**
+     * 产品详情页
+     *
+     * @param pid
+     * @return
+     */
+    @GetMapping("/foreproduct/{pid}")
+    public Object product(@PathVariable("pid") int pid) {
+        Product product = productService.get(pid);
+        // 设置产品图片
+        List<ProductImage> productSingleImages = productImageService.listSingleProductImages(product);
+        List<ProductImage> productDetailImages = productImageService.listDetailProductImages(product);
+        product.setProductSingleImages(productSingleImages);
+        product.setProductDetailImages(productDetailImages);
 
+        // 设置产品所有属性值
+        List<PropertyValue> propertyValueList = propertyValueService.list(product);
+        // 设置评论
+        List<Review> reviewList = reviewService.list(product);
+        // 获取销售数量、评论数
+        productService.setSaleAndReviewNumber(product);
+        // 获取产品缩略图（第一张）
+        productImageService.setFirstProdutImage(product);
+
+        // 返回Map
+        Map<String, Object> map = new HashMap<>();
+        map.put("product", product);
+        map.put("pvs", propertyValueList);
+        map.put("reviews", reviewList);
+        return Result.success(map);
+    }
+
+    /**
+     * 模态登录
+     *
+     * @param session
+     * @return
+     */
+    @GetMapping("forecheckLogin")
+    public Object checkLogin(HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (null != user){
+            return Result.success();
+        }
+        return Result.fail("未登录");
+    }
 }

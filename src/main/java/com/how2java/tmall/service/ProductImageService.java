@@ -52,6 +52,7 @@ public class ProductImageService {
 
     /**
      * 产品列表显示缩略图
+     * 获取第一张图片
      * @param product
      */
     public void setFirstProdutImage(Product product) {

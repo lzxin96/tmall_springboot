@@ -25,6 +25,10 @@ public class ProductService {
     private CategoryService categoryService;
     @Autowired
     private ProductImageService productImageService;
+    @Autowired
+    private OrderItemService orderItemService;
+    @Autowired
+    private ReviewService reviewService;
 
     public void add(Product bean) {
         productDAO.save(bean);
@@ -97,6 +101,29 @@ public class ProductService {
                 productsByRow.add(productsOfEachRow);
             }
             category.setProductsByRow(productsByRow);
+        }
+    }
+
+    /**
+     * 设置产品销量和评论
+     * @param product
+     */
+    public void setSaleAndReviewNumber(Product product) {
+        int saleCount = orderItemService.getSaleCount(product);
+        product.setSaleCount(saleCount);
+
+        int reviewCount = reviewService.getCount(product);
+        product.setReviewCount(reviewCount);
+
+    }
+
+    /**
+     * 设置多个产品销量和评论
+     * @param products
+     */
+    public void setSaleAndReviewNumber(List<Product> products) {
+        for (Product product : products){
+            setSaleAndReviewNumber(product);
         }
     }
 }

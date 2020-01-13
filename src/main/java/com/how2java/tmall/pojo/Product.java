@@ -24,15 +24,34 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "cid")
     private Category category;
-
-    //如果既没有指明 关联到哪个Column,又没有明确要用@Transient忽略，那么就会自动关联到表对应的同名字段
     private String name;
     private String subTitle;
     private float originalPrice;
     private float promotePrice;
     private int stock;
     private Date createDate;
-    /*注释没有映射到数据库的字段*/
-    @Transient
+
+
+    @Transient // 注释没有映射到数据库的字段
     private ProductImage firstProductImage;
+    /**
+     * 单个产品图片集合
+     */
+    @Transient
+    private List<ProductImage> productSingleImages;
+    /**
+     * 详情产品图片集合
+     */
+    @Transient
+    private List<ProductImage> productDetailImages;
+    /**
+     * 销量
+     */
+    @Transient
+    private int saleCount;
+    /**
+     * 累计评价
+     */
+    @Transient
+    private int reviewCount;
 }

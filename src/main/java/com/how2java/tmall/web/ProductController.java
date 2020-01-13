@@ -13,6 +13,7 @@ import java.util.Date;
 
 /**
  * 产品
+ * @author xin
  */
 @RestController
 public class ProductController {
