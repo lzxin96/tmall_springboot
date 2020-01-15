@@ -46,6 +46,15 @@ public class ProductService {
         productDAO.save(bean);
     }
 
+    /**
+     * 分页
+     *
+     * @param cid
+     * @param start
+     * @param size
+     * @param navigatePages
+     * @return
+     */
     public Page4Navigator<Product> list(int cid, int start, int size, int navigatePages) {
         Category category = categoryService.get(cid);
         Sort sort = new Sort(Sort.Direction.DESC, "id");
@@ -65,15 +74,6 @@ public class ProductService {
     }
 
     /**
-     * 为多个分类填充产品集合
-     * @param categorys
-     */
-    public void fill(List<Category> categorys) {
-        for (Category category : categorys) {
-            fill(category);
-        }
-    }
-    /**
      * 为分类填充产品集合
      *
      * @param category
@@ -85,8 +85,20 @@ public class ProductService {
     }
 
     /**
+     * 为多个分类填充产品集合
+     *
+     * @param categorys
+     */
+    public void fill(List<Category> categorys) {
+        for (Category category : categorys) {
+            fill(category);
+        }
+    }
+
+    /**
      * 为多个分类填充推荐产品集合，即把分类下的产品集合
      * 按照8个为一行，拆成多行，以利于后续页面上进行显示
+     *
      * @param categorys
      */
     public void fillByRow(List<Category> categorys) {
@@ -106,6 +118,7 @@ public class ProductService {
 
     /**
      * 设置产品销量和评论
+     *
      * @param product
      */
     public void setSaleAndReviewNumber(Product product) {
@@ -118,12 +131,28 @@ public class ProductService {
     }
 
     /**
-     * 设置多个产品销量和评论
+     * 设置多个产品销量和评论数
+     *
      * @param products
      */
     public void setSaleAndReviewNumber(List<Product> products) {
-        for (Product product : products){
+        for (Product product : products) {
             setSaleAndReviewNumber(product);
         }
+    }
+
+    /**
+     * 产品名模糊查询
+     *
+     * @param keyword
+     * @param start
+     * @param size
+     * @return
+     */
+    public List<Product> search(String keyword, int start, int size) {
+        Sort sort = new Sort(Sort.Direction.DESC, "id");
+        Pageable pageable = new PageRequest(start, size, sort);
+        List<Product> products = productDAO.findByNameLike("%" + keyword + "%", pageable);
+        return products;
     }
 }
