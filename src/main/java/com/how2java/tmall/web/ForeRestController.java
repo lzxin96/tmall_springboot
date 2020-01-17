@@ -1,6 +1,7 @@
 package com.how2java.tmall.web;
 
 import com.how2java.tmall.comparator.*;
+import com.how2java.tmall.dao.OrderItemDAO;
 import com.how2java.tmall.pojo.*;
 import com.how2java.tmall.service.*;
 import com.how2java.tmall.util.Result;
@@ -9,10 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.HtmlUtils;
 
 import javax.servlet.http.HttpSession;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 前台功能映射
@@ -33,6 +31,8 @@ public class ForeRestController {
     private PropertyValueService propertyValueService;
     @Autowired
     private ReviewService reviewService;
+    @Autowired
+    private OrderItemService orderItemService;
 
     /**
      * home()方法映射首页访问路径 "forehome"
@@ -172,17 +172,123 @@ public class ForeRestController {
 
     /**
      * 产品名模糊查询
+     *
      * @param keyword
      * @return
      */
     @PostMapping("foresearch")
-    public Object search(String keyword){
-        if (null == keyword){
+    public Object search(String keyword) {
+        if (null == keyword) {
             keyword = "";
         }
         List<Product> products = productService.search(keyword, 0, 20);
         productImageService.setFirstProdutImages(products);
         productService.setSaleAndReviewNumber(products);
         return products;
+    }
+
+    /**
+     * 购买
+     *
+     * @param pid
+     * @param num
+     * @param session
+     * @return
+     */
+    @GetMapping("forebuyone")
+    public Object buyone(int pid, int num, HttpSession session) {
+        return buyoneAndAddCart(pid, num, session);
+    }
+
+    /**
+     * 立即购买
+     * 进入购物车并购买
+     * @param pid
+     * @param num
+     * @param session
+     * @return
+     */
+    private int buyoneAndAddCart(int pid, int num, HttpSession session) {
+        Product product = productService.get(pid);
+        int oiid = 0;
+        User user = (User) session.getAttribute("user");
+        // 标记是否存在
+        boolean found = false;
+        List<OrderItem> ois = orderItemService.listByUser(user);
+        for (OrderItem oi : ois) {
+            // 判断购物车里产品id是否一致
+            if (oi.getProduct().getId() == product.getId()) {
+                // 修改数量
+                oi.setNumber(oi.getNumber() + num);
+                orderItemService.update(oi);
+                found = true;
+                oiid = oi.getId();
+                break;
+            }
+        }
+        // 不存在创建新子项
+        if (!found) {
+            OrderItem oi = new OrderItem();
+            oi.setUser(user);
+            oi.setProduct(product);
+            oi.setNumber(num);
+            orderItemService.add(oi);
+            oiid = oi.getId();
+        }
+        return oiid;
+    }
+
+    /**
+     * 添加到购物车
+     *
+     * @param pid
+     * @param num
+     * @param session
+     * @return
+     */
+    @GetMapping("foreaddCart")
+    public Object addCart(int pid, int num, HttpSession session) {
+        buyoneAndAddCart(pid, num, session);
+        return Result.success();
+    }
+
+    /**
+     * 购买、结算
+     *
+     * @param oiid
+     * @param session
+     * @return
+     */
+    @GetMapping("forebuy")
+    public Object buy(String[] oiid, HttpSession session) {
+        List<OrderItem> orderItems = new ArrayList<>();
+        float total = 0;
+
+        for (String strid : oiid) {
+            int id = Integer.parseInt(strid);
+            OrderItem oi = orderItemService.get(id);
+            total += oi.getProduct().getPromotePrice() * oi.getNumber();
+            orderItems.add(oi);
+        }
+
+        productImageService.setFirstProdutImagesOnOrderItems(orderItems);
+        session.setAttribute("ois", orderItems);
+        Map<String, Object> map = new HashMap<>();
+        map.put("orderItems", orderItems);
+        map.put("total", total);
+        return Result.success(map);
+    }
+
+    /**
+     * 购物车列表
+     * @param session
+     * @return
+     */
+    @GetMapping("forecart")
+    public Object cart(HttpSession session) {
+        User user =(User)  session.getAttribute("user");
+        List<OrderItem> ois = orderItemService.listByUser(user);
+        productImageService.setFirstProdutImagesOnOrderItems(ois);
+        return ois;
     }
 }
