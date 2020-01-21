@@ -203,6 +203,7 @@ public class ForeRestController {
     /**
      * 立即购买
      * 进入购物车并购买
+     *
      * @param pid
      * @param num
      * @param session
@@ -281,14 +282,55 @@ public class ForeRestController {
 
     /**
      * 购物车列表
+     *
      * @param session
      * @return
      */
     @GetMapping("forecart")
     public Object cart(HttpSession session) {
-        User user =(User)  session.getAttribute("user");
+        User user = (User) session.getAttribute("user");
         List<OrderItem> ois = orderItemService.listByUser(user);
         productImageService.setFirstProdutImagesOnOrderItems(ois);
         return ois;
+    }
+
+    /**
+     * 购物车修改商品数量
+     * @param session
+     * @param pid
+     * @param num
+     * @return
+     */
+    @GetMapping("forechangeOrderItem")
+    public Object changeOrderItem(HttpSession session, int pid, int num) {
+        User user = (User) session.getAttribute("user");
+        if (null == user) {
+            return Result.fail("未登录");
+        }
+        List<OrderItem> ois = orderItemService.listByUser(user);
+        for (OrderItem oi : ois) {
+            if (oi.getProduct().getId() == pid) {
+                oi.setNumber(num);
+                orderItemService.update(oi);
+                break;
+            }
+        }
+        return Result.success();
+    }
+
+    /**
+     * 删除商品
+     * @param session
+     * @param oiid
+     * @return
+     */
+    @GetMapping("foredeleteOrderItem")
+    public Object deleteOrderItem(HttpSession session, int oiid) {
+        User user = (User) session.getAttribute("user");
+        if (null == user) {
+            return Result.fail("未登录");
+        }
+        orderItemService.delete(oiid);
+        return Result.success();
     }
 }

@@ -99,7 +99,7 @@ public class OrderItemService {
 
 
     /**
-     * 查找用户id的订单子项
+     * 查找用户id且订单号为null的的订单子项
      *
      * @param user
      * @return
